@@ -40,14 +40,11 @@ for(i in 1:length(comb.list)){
   tempmat1 <- subset(tempmat, order == 1)
   tempmat2 <- split(tempmat1, tempmat1$question)
   list1 <- tempmat2$`1`$stid
-  #Match order group students back to original data
-  tempmat$group <- match(tempmat$stid, list1, nomatch = 0)
-  tempmat$group <- ifelse(tempmat$group > 0, 1, 2)
-  #Subset original data into ordered groups
-  tempmat3 <- subset(tempmat,group == 1)
+  list2 <- tempmat2$`2`$stid
+  #Generate dataframe for each group
+  tempmat3 <- tempmat[tempmat$stid %in% list1, ]
   tempmat3 <- tempmat3[c(1,3)]
-  
-  tempmat4 <- subset(tempmat,group == 2)
+  tempmat4 <- tempmat[tempmat$stid %in% list2, ]
   tempmat4 <- tempmat4[c(1,3)]
   
   tempmat3 <- aggregate(tempmat3, by = list(tempmat3$stid), FUN = sum)
