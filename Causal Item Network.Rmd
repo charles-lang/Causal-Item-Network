@@ -14,16 +14,6 @@ t.stamp <- c("2012/01/04", "2012/01/19", "2012/01/11", "2012/01/02", "2012/01/07
 D1 <- data.frame(stid, question, correct, t.stamp)
 D1$t.stamp <- as.Date(D1$t.stamp)
 
----------------
-  
-latemail <-  function(N, st="2012/01/01", et="2012/12/31") {
-     st <- as.POSIXct(as.Date(st))
-     et <- as.POSIXct(as.Date(et))
-     dt <- as.numeric(difftime(et,st,unit="sec"))
-     ev <- sort(runif(N, 0, dt))
-     rt <- st + ev
- }
-t.stamp <- latemail(19)
 ```
 #Subset into item comparison groups
 ```{r}
@@ -70,54 +60,5 @@ for(i in 1:length(comb.list)){
   comb.list$avg2[i] <- mean(tempmat4$count)
 }
 
-
-  q1 <- ifelse(tempmat$question == comb.list$X1[i] & tempmat$order == 1, subset(tempmat, ))
-  
-  
-  q1 <- ifelse(tempmat$question == comb.list$X1[i] & tempmat$order == 1, subset(tempmat, stid == comb.list$stid[i]), NA)
-  avg1 <- mean(q1$correct)
-}
-
-if(tempmat$question == comb.list$X2[i] & tempmat$order == 1)
- q2 <- subset(tempmat, stid == comb.list$stid[i])
-      avg2 <- mean(q2$correct)
-  comb.list$distance <- sqrt((avg1 - avg2)^2)
-
-  
-  tempmat$stid <- NULL
-  tempmat$t.stamp <- NULL
-  tempmat.ag <- aggregate(tempmat, by = list(tempmat$question, tempmat$order), mean)
-  
-  tempmat_melt <- melt(tempmat, id = c("question", "order"))
-  dcast(tempmat_melt, correct + question, sum)
-} 
-  
-split(D1, D1$question == comb.list)
-
-x <- split(D1, list(comb.list$X1, comb.list$X2))
-
-for (i in 1:length(comb.list)){
-  subset(D1, question == comb.list$X1[i] | question == comb.list$X2[i])
-  
-}
-
-results <- NULL 
-
-
-   
-D2 <- subset(D1, question == combn(D1$question, 1, FUN = NULL, simplify = TRUE))
-
-D1 <- D1[order(question),]
-
-listOfAllSubsets <- function (s) {
-  n <- 3
-  unlist(lapply(1:n, function (n) {
-    combn(s, n, simplify=FALSE)
-  }), recursive=FALSE)
-}
-
-combn <- listOfAllSubsets(D1$question)
-
-combn <- combn(D1$question, 2, FUN = NULL, simplify = TRUE)
 ```
 
