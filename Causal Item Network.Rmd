@@ -66,6 +66,19 @@ for(i in 1:length(comb.list)){
   #Record in main dataframe
   comb.list$avg1[i] <- mean(tempmat7$count)
   comb.list$avg2[i] <- mean(tempmat8$count)
+  
+    tempmat <- NULL
+    tempmat1 <- NULL
+    tempmat2 <- NULL
+    tempmat3 <- NULL
+    tempmat4 <- NULL
+    tempmat5 <- NULL
+    tempmat6 <- NULL
+    tempmat7 <- NULL
+    tempmat8 <- NULL
+    rm(list1)
+    rm(list2)
+    rm(dup)
 }
 
 ```
