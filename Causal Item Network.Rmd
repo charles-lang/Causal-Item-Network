@@ -1,0 +1,123 @@
+---
+title: "Causal Item Network"
+author: "Charles Lang"
+date: "January 8, 2016"
+output: html_document
+---
+```{r}
+#Generate data
+question <- c(1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1)
+stid <- c(1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7)
+correct <- c(1,1,1,0,0,1,1,0,1,1,0,0,0,1,1,0,1,0,1)
+t.stamp <- c("2012/01/04", "2012/01/19", "2012/01/11", "2012/01/02", "2012/01/07", "2012/01/10", "2012/01/12", "2012/01/06", "2012/01/20", "2012/01/08", "2012/01/22", "2012/01/28", "2012/01/17", "2012/01/14", "2012/01/02", "2012/01/03", "2012/01/25", "2012/01/08", "2012/01/08")
+
+D1 <- data.frame(stid, question, correct, t.stamp)
+D1$t.stamp <- as.Date(D1$t.stamp)
+
+---------------
+  
+latemail <-  function(N, st="2012/01/01", et="2012/12/31") {
+     st <- as.POSIXct(as.Date(st))
+     et <- as.POSIXct(as.Date(et))
+     dt <- as.numeric(difftime(et,st,unit="sec"))
+     ev <- sort(runif(N, 0, dt))
+     rt <- st + ev
+ }
+t.stamp <- latemail(19)
+```
+#Subset into item comparison groups
+```{r}
+library(reshape2)
+
+#Create list of item combinations 
+comb.list <- combn(unique(D1$question, incomparables = FALSE), 2, simplify = TRUE)
+comb.list <- t(comb.list)
+comb.list1 <- data.frame(comb.list)
+comb.list2 <- data.frame(comb.list1$X2, comb.list1$X1)
+names(comb.list2) <- c("X1", "X2")
+comb.list <- rbind(comb.list1, comb.list2)
+
+#iterate over combination list
+for(i in 1:length(comb.list)){
+  tempmat <- subset(D1, question == comb.list$X1[i] | question == comb.list$X2[i])
+  #Remove students with only one of the two questions
+  dup <- as.vector(tempmat$stid)
+  dup <- unique(dup[duplicated(dup)])
+  tempmat <- tempmat[tempmat$stid %in% dup, ]
+  tempmat <- tempmat[order(tempmat$stid, tempmat$t.stamp),]
+  #Split into ordered pairs & separate students by order
+  tempmat$order <- seq(1,2,1)
+  tempmat1 <- subset(tempmat, order == 1)
+  tempmat2 <- split(tempmat1, tempmat1$question)
+  list1 <- tempmat2$`1`$stid
+  #Match order group students back to original data
+  tempmat$group <- match(tempmat$stid, list1, nomatch = 0)
+  tempmat$group <- ifelse(tempmat$group > 0, 1, 2)
+  #Subset original data into ordered groups
+  tempmat3 <- subset(tempmat,group == 1)
+  tempmat3 <- tempmat3[c(1,3)]
+  
+  tempmat4 <- subset(tempmat,group == 2)
+  tempmat4 <- tempmat4[c(1,3)]
+  
+  tempmat3 <- aggregate(tempmat3, by = list(tempmat3$stid), FUN = sum)
+  tempmat3$count <- ifelse(tempmat3$correct == 2, 1, 0)
+ 
+  tempmat4 <- aggregate(tempmat4, by = list(tempmat4$stid), FUN = sum)
+  tempmat4$count <- ifelse(tempmat4$correct == 2, 1, 0)
+  
+  comb.list$avg1[i] <- mean(tempmat3$count)
+  comb.list$avg2[i] <- mean(tempmat4$count)
+}
+
+
+  q1 <- ifelse(tempmat$question == comb.list$X1[i] & tempmat$order == 1, subset(tempmat, ))
+  
+  
+  q1 <- ifelse(tempmat$question == comb.list$X1[i] & tempmat$order == 1, subset(tempmat, stid == comb.list$stid[i]), NA)
+  avg1 <- mean(q1$correct)
+}
+
+if(tempmat$question == comb.list$X2[i] & tempmat$order == 1)
+ q2 <- subset(tempmat, stid == comb.list$stid[i])
+      avg2 <- mean(q2$correct)
+  comb.list$distance <- sqrt((avg1 - avg2)^2)
+
+  
+  tempmat$stid <- NULL
+  tempmat$t.stamp <- NULL
+  tempmat.ag <- aggregate(tempmat, by = list(tempmat$question, tempmat$order), mean)
+  
+  tempmat_melt <- melt(tempmat, id = c("question", "order"))
+  dcast(tempmat_melt, correct + question, sum)
+} 
+  
+split(D1, D1$question == comb.list)
+
+x <- split(D1, list(comb.list$X1, comb.list$X2))
+
+for (i in 1:length(comb.list)){
+  subset(D1, question == comb.list$X1[i] | question == comb.list$X2[i])
+  
+}
+
+results <- NULL 
+
+
+   
+D2 <- subset(D1, question == combn(D1$question, 1, FUN = NULL, simplify = TRUE))
+
+D1 <- D1[order(question),]
+
+listOfAllSubsets <- function (s) {
+  n <- 3
+  unlist(lapply(1:n, function (n) {
+    combn(s, n, simplify=FALSE)
+  }), recursive=FALSE)
+}
+
+combn <- listOfAllSubsets(D1$question)
+
+combn <- combn(D1$question, 2, FUN = NULL, simplify = TRUE)
+```
+
