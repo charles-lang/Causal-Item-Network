@@ -22,10 +22,6 @@ library(reshape2)
 #Create list of item combinations 
 comb.list <- combn(unique(D1$question, incomparables = FALSE), 2, simplify = TRUE)
 comb.list <- t(comb.list)
-comb.list1 <- data.frame(comb.list)
-comb.list2 <- data.frame(comb.list1$X2, comb.list1$X1)
-names(comb.list2) <- c("X1", "X2")
-comb.list <- rbind(comb.list1, comb.list2)
 
 #iterate over combination list
 tempmat <- NULL
