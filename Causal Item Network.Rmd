@@ -22,6 +22,7 @@ library(reshape2)
 #Create list of item combinations 
 comb.list <- combn(unique(D1$question, incomparables = FALSE), 2, simplify = TRUE)
 comb.list <- t(comb.list)
+comb.list <- data.frame(comb.list)
 
 #iterate over combination list
 tempmat <- NULL
@@ -76,6 +77,13 @@ for(i in 1:length(comb.list)){
     rm(list2)
     rm(dup)
 }
+
+#Calculate distance
+comb.list$distance <- 1/sqrt((comb.list$avg1 - comb.list$avg2)^2)
+comb.list$distance <- ifelse(comb.list$distance == Inf, 0, comb.list$distance)
+
+#Identify from and to
+
 
 ```
 
