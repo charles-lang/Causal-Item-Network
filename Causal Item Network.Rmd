@@ -83,7 +83,32 @@ comb.list$distance <- 1/sqrt((comb.list$avg1 - comb.list$avg2)^2)
 comb.list$distance <- ifelse(comb.list$distance == Inf, 0, comb.list$distance)
 
 #Identify from and to
+comb.list$from <- ifelse(comb.list$avg1 > comb.list$avg2, comb.list$X1, comb.list$X2)
+comb.list$to <- ifelse(comb.list$avg1 < comb.list$avg2, comb.list$X1, comb.list$X2)
 
+#Create edge list
+edge <- comb.list[,c(6,7,5)]
+
+#Create vertice list
+node <- data.frame(D1$question, D1$correct)
+node <- aggregate(node, by = list(node$D1.question), FUN = mean)
+node <- node[,c(1,3)]
+names(node) <- c("item", "difficulty")
+
+```
+#iGraph Plot
+```{r}
+library(igraph)
+
+d <- graph.data.frame(edge, directed=TRUE, vertices=node)
+
+par(mar=c(0,0,0,0)) #eliminate margins
+
+plot(d, 
+     layout=layout.fruchterman.reingold,
+     vertex.size=node$difficulty*10,
+     edge.arrow.size=0.3,
+     edge.width=edge$distance)
 
 ```
 
