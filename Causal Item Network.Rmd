@@ -6,10 +6,23 @@ output: html_document
 ---
 ```{r}
 #Generate data
-question <- c(1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1,2,3,1)
-stid <- c(1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7)
-correct <- c(1,1,1,0,0,1,1,0,1,1,0,0,1,1,1,0,1,0,1)
-t.stamp <- c("2012/01/04", "2012/01/19", "2012/01/11", "2012/01/02", "2012/01/07", "2012/01/10", "2012/01/12", "2012/01/06", "2012/01/20", "2012/01/08", "2012/01/22", "2012/01/28", "2012/01/17", "2012/01/14", "2012/01/02", "2012/01/03", "2012/01/25", "2012/01/08", "2012/01/08")
+question <- c(1,2,1,2,1,2,1,2,1,2,1,2,1)
+stid <- c(1,1,2,2,3,3,4,4,5,5,6,6,7)
+correct <- c(1,1,1,1,0,0,1,1,0,1,1,0,0)
+t.stamp <- c("2012/01/04", "2012/01/19", "2012/01/11", "2012/02/11", "2012/01/02", "2012/01/07", "2012/01/10", "2012/01/12", "2012/01/06", "2012/01/20", "2012/01/08", "2012/01/22", "2012/01/28")
+
+D1 <- data.frame(stid, question, correct, t.stamp)
+D1$t.stamp <- as.Date(D1$t.stamp)
+```
+
+
+
+```{r}
+#Generate data
+question <- c(1,2,3,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1)
+stid <- c(1,1,1,1,1,2,2,2,2,3,3,3,2,4,4,4,4,5,5,5,5,6,6,6,6,7)
+correct <- c(1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1,1,0,0,1,0,1,0)
+t.stamp <- c("2012/01/04", "2012/01/19", "2012/01/11", "2012/02/11", "2012/01/02", "2012/01/07", "2012/01/10", "2012/01/12", "2012/01/06", "2012/01/20", "2012/01/08", "2012/01/22", "2012/01/28", "2012/01/17", "2012/01/14", "2012/01/02", "2012/01/03", "2012/01/25", "2012/01/08", "2012/01/08", "2012/02/18", "2012/01/17", "2012/01/20", "2012/09/17", "2012/03/17", "2012/04/15")
 
 D1 <- data.frame(stid, question, correct, t.stamp)
 D1$t.stamp <- as.Date(D1$t.stamp)
@@ -18,6 +31,17 @@ D1$t.stamp <- as.Date(D1$t.stamp)
 #Subset into item comparison groups
 ```{r}
 library(reshape2)
+
+D1 <- read.table("~/Documents/Research Projects/WPI Collaboration/Causal Item Network/22.csv", sep = ",", header = TRUE)
+D1 <- D1[, c("stid", "question", "correct", "t.stamp")]
+
+#Remove students who answered questions twice
+D1 <- D1[order(D1$stid, D1$question, D1$t.stamp),]
+D1$x <- 1
+D1$ord <- ave(D1$x,D1$stid, D1$question,FUN=cumsum)
+D1 <- subset(D1, ord == 1)
+D1 <- D1[,1:4]
+D1 <- D1[order(D1$stid,D1$t.stamp),]
 
 #Create list of item combinations 
 comb.list <- combn(unique(D1$question, incomparables = FALSE), 2, simplify = TRUE)
@@ -34,37 +58,55 @@ tempmat5 <- NULL
 tempmat6 <- NULL
 tempmat7 <- NULL
 tempmat8 <- NULL
-
+dup <- NULL
 
 for(i in 1:length(comb.list)){
+  
   tempmat <- subset(D1, question == comb.list$X1[i] | question == comb.list$X2[i])
+  tempmat <- tempmat[order(tempmat$stid,tempmat$t.stamp),]
+  
   #Remove students with only one of the two questions
   dup <- as.vector(tempmat$stid)
   dup <- unique(dup[duplicated(dup)])
   tempmat <- tempmat[tempmat$stid %in% dup, ]
   tempmat <- tempmat[order(tempmat$stid, tempmat$t.stamp),]
+  
   #Split into ordered pairs & separate students by order
   tempmat$order <- seq(1,2,1)
   tempmat1 <- subset(tempmat, order == 1)
   tempmat2 <- split(tempmat1, tempmat1$question)
+
+  #Assign item pairs that only exist in one direction 0
+  if(length(tempmat2) == 1){
+    
+    comb.list$avg1[i] <- 0
+    comb.list$avg2[i] <- 0
+  
+    } else {
+  
   list1 <- tempmat2[[1]]$stid
   list2 <- tempmat2[[2]]$stid
+  
   #Generate dataframe for each group
   tempmat3 <- tempmat[tempmat$stid %in% list1, ]
   tempmat4 <- tempmat[tempmat$stid %in% list2, ]
+  
   #Remove uneeded variables
   tempmat5 <- tempmat3[c(1,3)]
   tempmat6 <- tempmat4[c(1,3)]
+  
   #Aggregate by student to identify correct -> correct
   tempmat7 <- aggregate(tempmat5, by = list(tempmat5$stid), FUN = sum)
   tempmat7$count <- ifelse(tempmat7$correct == 2, 1, 0)
   tempmat8 <- aggregate(tempmat6, by = list(tempmat6$stid), FUN = sum)
   tempmat8$count <- ifelse(tempmat8$correct == 2, 1, 0)
-  #Record in main dataframe
-  comb.list$avg1[i] <- mean(tempmat7$count)
-  comb.list$avg2[i] <- mean(tempmat8$count)
   
-    tempmat <- NULL
+  #Record in main dataframe
+  comb.list$pX1_X2[i] <- mean(tempmat7$count)
+  comb.list$pX2_X1[i] <- mean(tempmat8$count)
+  
+
+    tempmat  <- NULL
     tempmat1 <- NULL
     tempmat2 <- NULL
     tempmat3 <- NULL
@@ -76,7 +118,12 @@ for(i in 1:length(comb.list)){
     rm(list1)
     rm(list2)
     rm(dup)
+
+  }  
 }
+
+
+
 
 #Calculate distance
 comb.list$distance <- 1/sqrt((comb.list$avg1 - comb.list$avg2)^2)
@@ -107,8 +154,36 @@ par(mar=c(0,0,0,0)) #eliminate margins
 plot(d, 
      layout=layout.fruchterman.reingold,
      vertex.size=node$difficulty*10,
-     edge.arrow.size=0.3,
-     edge.width=edge$distance)
+     edge.arrow.size=0.1,
+     edge.width=edge$distance/10)
+
+```
+
+```{r}
+latemail <- function(N, st="2012/01/01", et="2012/12/31") {
+     st <- as.POSIXct(as.Date(st))
+     et <- as.POSIXct(as.Date(et))
+     dt <- as.numeric(difftime(et,st,unit="sec"))
+     ev <- sort(runif(N, 0, dt))
+     rt <- st + ev
+}
+
+set.seed(42)
+
+student_id <- sample(10001:10100, 20, replace = FALSE)
+Access_1.5 <- latemail(20)
+Access_1.6 <- latemail(20)
+Access_1.7 <- latemail(20)
+Access_Notes <- latemail(20)
+Access_HW <- latemail(20)
+x <- c("complete", "incomplete")
+Module1 <- sample(x, 20, replace = TRUE)
+y <- c("correct", "incorrect")
+Self_Assessment_Q1 <- sample(y, 20, replace = TRUE)
+Self_Assessment_Q2 <- sample(y, 20, replace = TRUE)
+Quiz_Score <- sample(1:100, 20, replace = TRUE)
+
+df <- data.frame(student_id, Access_1.5, Access_1.6, Access_1.7, Access_Notes, Access_HW, Module1, Self_Assessment_Q1, Self_Assessment_Q2, Quiz_Score)
 
 ```
 
