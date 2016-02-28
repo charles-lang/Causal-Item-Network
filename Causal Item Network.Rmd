@@ -157,5 +157,7 @@ plot(d,
      edge.arrow.size=0.1,
      edge.width=edge$distance/10)
 
+#Need to add a "weights" attribute to layout to weight Fruchterman-Reingold edges with distances
+
 ```
 
