@@ -1,0 +1,37 @@
+---
+title: "Causal Item Network - Tidy Version"
+author: "Charles Lang"
+date: "February 27, 2016"
+output: html_document
+---
+#Libraries
+```{r}
+library(dplyr)
+library(tidyr)
+
+```
+#Generate data
+```{r}
+#Generate data
+question <- c(1,2,3,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4,1)
+stid <- c(1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6,7)
+correct <- c(1,1,0,1,1,0,1,1,0,1,1,0,1,1,0,1,0,1,1,1,0,0,1,0,1,0)
+t.stamp <- c("2012/01/04", "2012/01/19", "2012/01/11", "2012/02/11", "2012/01/02", "2012/01/07", "2012/01/10", "2012/01/12", "2012/01/06", "2012/01/20", "2012/01/08", "2012/01/22", "2012/01/28", "2012/01/17", "2012/01/14", "2012/01/02", "2012/01/03", "2012/01/25", "2012/01/08", "2012/01/08", "2012/02/18", "2012/01/17", "2012/01/20", "2012/09/17", "2012/03/17", "2012/04/15")
+
+D1 <- data.frame(stid, question, correct, t.stamp)
+D1$t.stamp <- as.Date(D1$t.stamp)
+```
+#Remove students who answer questions twice (remove second attempt)
+```{r}
+D2 <- D1 %>% group_by(question, stid) %>% distinct(question, stid)
+```
+#Create list of possible combinations
+```{r}
+comb.list <- data.frame(t(combn(unique(D1$question, incomparables = FALSE), 2, simplify = TRUE)))
+```
+#Remove students who have only answered one of the questions
+```{r}
+
+```
+
+
